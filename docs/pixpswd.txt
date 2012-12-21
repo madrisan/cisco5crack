@@ -1,0 +1,136 @@
+
+http://archives.neohapsis.com/archives/vulnwatch/2002-q2/0121.html
+ 
+                                 
+                                 Security Advisory 
+ ______________________________________________________________________________ 
+
+         Subject: Weak Cisco PIX Enable Password Encryption Algorithm 
+
+         Authors: mao <mao@oxid.it> 
+                  Michael Thumann <mthumann@ernw.de> 
+
+         Issue date: June, 21, 2002 
+ ______________________________________________________________________________ 
+
+
+1. Summary 
+   
+   The encryption algorithm used by Cisco PIX Firewall software to encrypt 
+   passwords for "enable" and "passwd" commands is very fast...too fast. 
+   An off-line password guessing attack could be really effective against 
+   this kind of passwords. 
+
+
+2. Systems Affected 
+
+   Cisco PIX Firewalls (all models and all versions) 
+
+
+3. Details 
+
+   Cisco PIX passwords are limited to a length of 16 Bytes, so in theory 
+   there are 255^16 possible passwords, but in real life there are about 
+   80^16 useful password combinations, take a look at your keyboard to 
+   verify, even if strong passwords are used. 
+
+   Cisco's password encryption is based on base64 encoded MD5 hashes. 
+   Routers IOS uses 1000 MD5 Update rounds to make password brute forcing 
+   attacks harder, but the PIX firewall uses only one MD5 update and then the 
+   digest is base64 encoded. 
+ 
+   For base64 encoding Cisco uses the _crypt_to64() Function of the FreeBSD 
+   libcrypt library. 
+
+   Here's the code to compute PIX password hashes: 
+
+========================================================== 
+         
+   MD5Context ctx1; 
+   unsigned char final[MD5_SIZE+1]; 
+   unsigned char cleartext [16+1]; 
+   unsigned char cisco_encoded [16+1]; 
+
+   memset(cisco_encoded,0,sizeof(cisco_encoded)); 
+   memset(cleartext,0,sizeof(cleartext)); 
+   strcpy((char*) cleartext,"test"); 
+
+   MD5Init2(&ctx1); 
+   MD5Update2(&ctx1,(unsigned char*) cleartext,16); 
+   MD5Final2(final,&ctx1); 
+
+   char* p = (char*) cisco_encoded; 
+   _crypt_to64(p,*(unsigned long*) (final+0),4); p += 4; 
+   _crypt_to64(p,*(unsigned long*) (final+4),4); p += 4; 
+   _crypt_to64(p,*(unsigned long*) (final+8),4); p += 4; 
+   _crypt_to64(p,*(unsigned long*) (final+12),4); p += 4; 
+
+========================================================== 
+
+   Due to some weaknesses in the MD5 hash algorithm (den Boer and Bosselaers 
+   found a so called pseudo-collision) there may be more effective attacks in 
+   the future. 
+
+
+4. Impact 
+
+   PIX Firewalls are security devices principally used for perimeter security. 
+   Once gained access to the Firewall by mean of a valid enable password an 
+   intruder could modify its configuration as wanted. 
+   In this situation all networks and resources protected by the 
+   Firewall could be affected. 
+
+   Another important impact is due to the ability of recent version of 
+   PIX Firewalls softwares (new feature in version 6.2) to sniff traffic. 
+   The "capture" command could be used by an intruder to perform a 
+   sniffing of remote traffic based on pre-configured ACLs. 
+
+
+5. Solution 
+ 
+   Ask Cisco to use a stronger password scrambler (at least as the one 
+   ALREADY used on their routers and switches). 
+   While Cisco doesn't change the encryption algorithm for the PIX we 
+   recommend using strong passwords with the full length of 16 bytes. 
+ 
+
+6. Available Password Crackers 
+
+   Cain & Abel (www.oxid.it)  from version 2.5 beta13 it includes both 
+   crackers for Cisco PIX and Routers password hashes. 
+   The keyrate of those crackers shows the speed and feasibility of an 
+   off-line password guessing attacks. 
+ 
+   Too many secrets (www.ernw.de) 
+   Version 0.9 includes password attacks (brute forcing, dictionary 
+   and hybrid attacks) for Cisco routers and the Cisco PIX firewall 
+
+
+7. Conclusions 
+ 
+   The feasibility of an off-line password guessing is something that every 
+   network administrator should consider before leaving PIX configuration 
+   files on TFTP servers, sending them unencrypted via email or using telnet 
+   for configuring the PIX. 
+
+   
+8. References 
+
+   Bruce Schneiers 'Applied Cryptography'. FreeBSD libcrypt source code 
+ 
+
+9. Disclaimer 
+
+   The informations in this advisory are provided "AS IS" without warranty 
+   of any kind. In no event shall the authors be liable for any damages 
+   whatsoever including direct, indirect, incidental, consequential, 
+   loss of business profits or special damages due to the misuse of any 
+   information provided in this advisory. 
+ 
+
+Cisco and Cisco PIX are all registered trademarks of the Cisco Corporation. 
+___________________________________________________________________________ 
+ 
+
+ERNW Enno Rey Netzwerke GmbH - Zaehringerstr. 46 - 69115 Heidelberg 
+Tel. +49 6221 480390 - Fax +49 6221 419008 - Mobil +49 173 6745903 

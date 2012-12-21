@@ -1,0 +1,9 @@
+You can find the EGD (Entropy Gathering Daemon) software and documentation
+looking at <http://sourceforge.net/projects/egd/>.
+The EGD Daemon has been written by Brian Warner <warner@lothar.com>.
+
+cisco5crack is able to read the entropy collected by the EGD daemon, using the
+socket interface provided by EGD.  I've tested only EGD v0.9.
+
+Note that on Linux systems the device `/dev/urandom' offers a better source
+of randomness and that cisco5crack can also read from such a device.

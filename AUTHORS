@@ -1,0 +1,29 @@
+Acknowledgements
+----------------
+
+* The code in the file  `md5.c'  that  implements  the  MD5  message-digest
+  algorithm due to Ron Rivest was written by Colin Plumb in 1993.
+  No copyright is claimed.  This code is in the public domain.
+
+* The function `freebsd_crypt()' in the file 'crypt.c' is copyright by
+        Poul-Henning Kamp <phk@login.dknet.dk>
+  and released under the `"THE BEER-WARE LICENSE" (Revision 42)'.
+
+* The encryption algorithm used by Cisco PIX Firewall software  to  encrypt
+passwords for "enable" and "passwd" commands is taken from  the  security
+  advisory:  "Weak Cisco PIX Enable Password Encryption Algorithm", written
+  by mao <mao@oxid.it> and Michael Thumann  <mthumann@ernw.de>,  June,  21,
+  2002.
+
+* The rest of the code is Copyright (C) 2002-2004 by
+        Davide Madrisan <davide.madrisan@google.com>
+  under the GNU Library General Public License.
+
+
+See the comments included in each source file for more info.
+
+
+
+* On the web you can also find a good italian dictionary, `C5C-compatible',
+  written by Luigi M. Bianchi <lbianchi@sol.yorku.ca> and released under  a
+  Copyleft license.

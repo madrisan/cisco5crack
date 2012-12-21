@@ -1,0 +1,224 @@
+|=------------------------[ C5C version 1.1.5 ]--------------------------=|
+
+|=------[Off-line password cracker for Cisco IOS/PIX MD5 passwords]------=|
+|=---------[    davide madrisan  davide.madrisan@google.com    ]---------=|
+|=-----------------------------------------------------------------------=|
+
+
+Welcome to C5C.
+
+
+--[ GREETZ
+
+thx to luca trombotto who gives me an ssh account to his Sun Solaris SPARC
+station and to my best beta tester silvan calarco.
+
+
+--[ DESCRIPTION
+
+C5C stands for `Cisco MD5 password Cracker'.  It is an off-line password
+cracker for the MD5 passwords used in all the Cisco devices running IOS
+(`type 5' passwords) and in the PIX firewalls (`encrypted password').
+
+The feasibility of an off-line password guessing is something that every
+network administrator should consider before leaving router or PIX
+configuration files on TFTP servers or sending them via unencrypted emails.
+
+Here some examples of passwords handled by this tool:
+  - enable secret 5 $1$GsYL$MEEYuiuto.ex9Km/hC1sl/             [IOS]
+  - enable secret level 10 5 $1$F1kl$jKXsHDkl9Qlu28b/8t1MU0    [IOS]
+  - passwd WT.PMwgB2ek6zyV3 encrypted                          [PIX]
+  - enable password 2KFQnbNIdI.2KYOU encrypted                 [PIX]
+
+Its primary purpose is to detect weak passwords using:
+  - unbound brute-force attacks (for *very short* passwords only)
+  - brute-force attacks bound by:
+
+     (a) fixed length / range of lengths for plaintexts to be used,
+         ex. c5c --bruteforce --length=6 '$1$wait$BwsQnj6YxpKO9gdy4pkaA/'
+             c5c --bruteforce --length=5:7 '$1$oooh$MnEJxp/7JGjze/n.0DfIn0'
+
+     (b) user defined alphabet (eventually combined with (a)),
+         ex. c5c --bruteforce=[achrs] --length=4:6 '$1$EaSy$ZwDb9InwxJQ02o93J4br61'
+
+     (c) regular expressions,
+
+            that is a list of one or more of the above tokens:
+             - a single char, like `a',
+             - a list of characters, like `[abc]', `[a-z0-9]'
+               or`[@L\.sTa-d\\]{6}' (6 times `@L.sTabcd\'),
+             - a predefined class of characters, like `[:alnum:]'
+               or `[:digit:]{2}' (2 digits).
+
+            The subset of the regular expression sintax currently
+            supported is displayed in the above table:
+
+               regexpr           means
+               ------------------------------------------------
+               [a-z]             abcdefghijklmnopqrstuvwxyz
+               [a-i0-4]          abcdefghi01234
+               .                 ALL-THE-ALPHABET
+               [:lower:]         [a-z]
+               [:upper:]         [A-Z]
+               [:alpha:]         [A-Za-z]
+               [:alnum:]         [A-Za-z0-9]
+               [:digit:]         [0-9]
+               [:all:]           ALL-THE-ALPHABET
+               [a-z]{n}          [a-z] repeated exactly n times
+               [[:upper:]0-9]    [A-Z0-9]
+               [^[0-9]]          ALL-THE-ALPHABET - [0-9]
+
+            where ALL-THE-ALPHABET' is the concatenation of the strings:
+              " !\"#$%&'()*+,-./"
+              "0123456789"
+              ":;<=>@\"
+              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+               "[\]^_`"
+              "abcdefghijklmnopqrstuvwxyz"
+              "{|}~"
+
+         ex. c5c --bruteforce='[[:digit:][:lower:]]x[abc\\\_][0-9]{2}f' \
+                     '$1$dead$ZwzWtMyPbRpVyXJVvsnly/'
+             c5c --bruteforce='[^[:upper:][!-(]]' /HyU4nBDhpLVZFD2
+
+     (d) a given vocabulary (text file with line separated words).
+
+         ex. c5c --dictionary=./words.lst --length=10 \
+                     '$1$salt$q1U/vVn2cZb7JG3sxRad60'
+
+While cracking, you can press the enter key for status, or Ctrl+C to abort
+the session, saving point information to a file (`restore_cc' by
+default).  To continue an interrupted session, run:
+
+     c5c --restore
+
+C5C doesn't use any external crypt library. Instead it has its own highly
+optimized crypt module.  To use the standard algorithms (not optimized!),
+run the configure script selecting the `--disable-shortpasswd' feature:
+
+     configure --disable-shortpasswd
+
+You can try these commands to check if C5C run correctly on you system:
+
+  - c5c --crypt-ios --salt=xyzt c1sc0s3cr3t
+    should produce:  $1$xyzt$VmRKvt4nLstZN4owp/m97/
+
+  - c5c --crypt-pix weakpw
+    should produce:  DRugT4etKnStHLdx
+
+If not, please drop me a note :(
+Read the next section to see the supported/tested platforms.
+
+
+--[ SUPPORTED PLATFORMS
+
+C5C is written in plain C, making as few assumptions as possible, and
+sticking closely to ANSI C/POSIX.
+
+This is a list of platforms C5C is known to compile and run on.
+If you compile it on a platform not listed here, please drop me a note.
+
+   Intel x86
+       i686-pc-linux-gnu
+         (Linux SuSE 8.0
+          Linux Mandrake 9.0
+          Debian GNU/Linux 3.0
+          Linux Slackware 9.0
+          QiLinux 1.x)
+       i686-pc-cygwin
+         (Win2000 + Cygnus Developer's Kit <http://www.cygwin.com/>)
+       i686-pc-linux-gnulibc1 (diet-glibc 0.27)
+         (QiLinux 1.1)
+   Sparc
+       sparc-sun-solaris2.8
+         (SunOS 5.8 Generic sun4m sparc SUNW,SPARCstation-5 Solaris)
+
+   IA-64 (Itanium 2)
+       ia64-unknown-linux-gnu
+         (Red Hat Enterprise Linux AS release 3 (Taroon Update 3))
+
+The gcc compilers v.2.95.3, 3.2.x, 3.3, 3.4.x, 4.2.0 have been tested.
+
+Note 1.  To successfully build C5C using diet-glibc, you shoud disable
+gcc ANSI:
+
+    export CC="diet gcc"
+    configure --disable-gcc-ansi
+    make
+
+Note 2.  The source files have been formatted using the GNU indent tool
+version 2.2.6 with the options `-kr -hnl -i5 -lps -nut -psl -sc'.
+Of course, many manually changes have been made after ;)
+
+
+--[ INSTALL
+
+The `Makefile.in' files, the `configure' script, and the tarball have been
+generated using the last GNU autotools available.
+This way the compiling and installing processes should be quite easy (and
+hopefully portable).  See the file INSTALL for more info.
+
+Note that a check about the CPU and compiler optimizations available is
+performed by the `configure' script.  Anyway it can be overidded setting
+the CFLAGS variable.  For instance the command:
+
+    CFLAGS="-march=pentium -O3" ./configure
+
+force the compiler to generate code for the Intel Pentium CPU and
+set optimisation level to 3.
+
+Use legal values for the host you'are building the binary on, overwise
+the `configure' script will generate many broken false-negative answers
+while performing the configuration tests based on code compilation, or
+even stop with the error:  "C compiler cannot create executables".
+
+
+--[ FEEDBACK
+
+Feel free to write with any questions, suggestions, bribes, and bugs.
+flames > /dev/null.
+
+Submissions may be encrypted with the following PGP key:
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+mQGiBEGErccRBACEJ7PKpbMDyHj5do6zdiLm8ULD6os0qTQd3gJSSPenwQIjMggU
+9TMnicoMg296o53w0h2vwnlYuXYc+io/x2zFLtDI6ghhRMo5GPuYGSS504ZVfOHj
+z9FP8y6gIHG5VuaDBWD0vUhCjgNg8Xz9/dIZCqYMZ8rtITp6W0dBKPaJxwCgkJJo
+h1uMeTp+6+KEfgiRUe2sONsD/1WtXvwIC3S4Le+nydddV9QTEaH1eUflMgc7o3j1
+f0B1HNV8QuFySxjm76L1W2qascc/nDy/tDckWf4uYvDQHR+JMJ21GglxyYJDpJAD
+KRSAYkViy1o4OJkaXa/x9hIgpk5pTOqeV27BzTaaZph3ISd4BG9C18gYWaey6pPU
+WQVTA/9TZjYtbf1DqXLObuiXpuV8UYmBGnZOTDT05wT8ueIJXFXvuu6/TGW7Fhyv
+to99bKRYhG9dwBYhIeOoaxsK76DNAk4GILryDeNVmc9Grx+qY2to3QlkQXY5Ykb9
+2pd8uKwMZ3i4cHoHiBdnhAgHauZab0ZvgDQg2k0S+F8bcHWkFLRWRGF2aWRlIE1h
+ZHJpc2FuIChHZW5lcmFsIHB1cnBvc2Uga2V5IGZvciBRaUxpbnV4IGFjY291bnQp
+IDxkYXZpZGUubWFkcmlzYW5AcWlsaW51eC5pdD6IYQQTEQIAIQUCQYStxwUJAeEz
+gAYLCQgHAwIDFQIDAxYCAQIeAQIXgAAKCRDNqO/zS3KwuTWtAJ9D/ThXUCRyglHK
+URr7wuixQdgRGACdEOIVk1rQnTOvzTsGHjt3wmZRM5O5Ag0EQYSt0BAIANRKNlWo
+B94Sz2vGJg67LpB2ijuFqtSUn241dOivpY88aO68XFgzlCbxu29zlgvcrpN4hijr
+SVkpuYX5ZtVQjHzfTeyhdXdQ7494GdQYQzuo18PzJ3Pcv98qELxMgskofwyXEVF3
+ancoXoceXAZsCkJe/i8srP/p7mP2fmBMeU9u8z5brOcp/l++pd5s4qG4Tqx7EJ14
+AA/HaO8DxneqW6YyayEH1bav/21LciDMBuM+bgFspnP2lmuZb86sBM7KR0nz6BBX
+kDh7Z7j8++mKVpwUNsa72v2mawTsHQce7mkNOCVBdelx8v56uElhMfldncmNba+F
+dZ2JFvKHielyT3cAAwUH/29LlBw8/vDhGAMWdhfORtrtRekfvhV0G6KBxSwnB5b5
+SgPxdRhvA9S082d8cCNrVCH7Mt4KgmYKeuRYnm5SdH4lwfoUce9g92hm6LtcHk2m
+dSnSA0lwPXj23qlsSYQz2IN4+D+QfPAWLgEdGA1GWdzKbBVHBvv90y94pRTkU7sY
+h6Eexlx9TunjEP4T9PV4isIXP5kB2edn/umrN/zMm+ibHiMFoZUxyWpMk3is6wM1
+XrnZrzPnF0zwMdBziH2Fi99k4AVbpszujJh5egYmdl4tNtCECs7cD1voHyEIBTmY
+ry2LLqji2F8a+6o5t03PsVevZD8j4V7kQYEhbzc32eyITAQYEQIADAUCQYSt0AUJ
+AeEzgAAKCRDNqO/zS3KwucR5AJ9PTln0lQyFD2MktYRrwXtbrWQmXgCgjkXBuboP
+6y/BZ901aTv4zBc0B+A=
+=Bw6e
+-----END PGP PUBLIC KEY BLOCK-----
+
+
+--[ COPYLEFT
+
+This software is OSI Certified Open Source Software and is distributed
+under the GNU General Public License.
+See the file COPYING for more informations.
+
+Please, use this software in a legal way!
+
+|=[ EOF ]=---------------------------------------------------------------=|

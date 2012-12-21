@@ -1,0 +1,93 @@
+# These are the things to do before the version 1.0.0 (in any order)
+# ------------------------------------------------------------------------------
+
+[done] New sintax strictly based on the regular expression sintax
+       (subset of the regular expression sintax)
+
+         regexpr           means                             status
+         -----------------------------------------------------------
+         [a-z]             abcdefghijklmnopqrstuvwxyz        done
+         [a-i0-4]          abcdefghi01234                    done
+         .                 ALPHABET_FULL (1)                 done
+         [:lower:]         [a-z]                             done
+         [:upper:]         [A-Z]                             done
+         [:alpha:]         [A-Za-z]                          done
+         [:alnum:]         [A-Za-z0-9]                       done
+         [:digit:]         [0-9]                             done
+         [:all:]           ALPHABET_FULL                     done
+         [a-z]{n}          [a-z] repeated exactly n times    done
+         [[:upper:]0-9]                                      done
+         [^[0-9]]          ALPHABET_FULL - [0-9]             done
+
+         [a-z]{n,}         [a-z] repeated n or more times    unsupported
+         [a-z]{n,m}        [a-z] repeated at least n times,  unsupported
+                                 but not more than m times
+         * + ? ^ $                                           unsupported
+
+       (1) `ALPHABET_FULL' is the concatenation of the strings:
+              " !"#$%&'()*+,-./"
+              "0123456789"
+              ":;<=>@"
+              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+               "[\]^_`"
+              "abcdefghijklmnopqrstuvwxyz"
+              "{|}~"
+
+           Note that the characters
+              .[\]{}-
+           have special meanings, so they must be escaped to be used as plain
+           characters.  For instance `\[' is the open square bracket, not the
+           start character of a charset block as in `[:digit:]'.
+
+[done] Sane all the FIXME present in the source files
+         (grep -i FIXME `find ./src -name *.c -type f`)
+       and in `autoconf.ac'.
+[done] Add more infos in the file `score_cc' in case of failure.
+[done] Support the `^C' and `resume' actions in the `wordlist' cracking mode.
+[done] Make possible to execute c5c in background.
+[done] Check the implementation of the Cisco PIX encrypted passwords support.
+[done] Add support for Cisco PIX encrypted passwords.
+[done] Add support for EGD (Entropy Gathering Daemon) randomness source
+       (non Linux systems).
+[done] Do the little changes needed for the porting to Cygwin environment on
+       Windows platforms.
+[done] Reorganize the functions in the source files.
+[done] Add a pause/resume feature for long cracking sessions.
+       Should save the session data to a text file (need a bison parser (?)).
+[done] Implement a garbage collection system.
+[done] Rewrite the regular expression parser using a dfa (or flex (?)).
+[done] Check how the IOS manage the extended ASCII character set.
+[done] Unify the options `-b', `a', and `-A'.
+[done] Make some extensions in the sintax of the user options `-a' and `-A'.
+[done] Add support for GNU `getopt_long()'.
+[done] Add a scan engine based on an external dictionary (`-w' option).
+
+
+# Other things to do, before the versions 1.1.0 (ordered list)
+# ------------------------------------------------------------------------------
+
+[done] Add an automatic check in the `configure' script using the predefined
+       macro `AC_C_BIGENDIAN' (`WORDS_BIGENDIAN' will be defined in case of
+       a detected big-endian architecture).
+[done] Add support for big-endian architectures.
+[done] Check the format of `restore_cc' and `score_cc' to avoid the overwrite of
+       user/system files via a symlink attack (security fix).
+[done] Found an italian dictionary with less entries.
+
+
+# Some other ideas
+# ------------------------------------------------------------------------------
+
+[****] Due to some weaknesses in the MD5 hash algorithm (den Boer and Bosselaers
+       found a so called pseudo-collision) there may be more effective attacks
+       in the future.  Investigation needed...
+[****] Implement the 'time-memory trade-off' technique to crack PIX passwords.
+       See at <http://lasecpc13.epfl.ch/pub/lasec/doc/Oech03.pdf>
+
+[ ?? ] Convert the parser engine to a `GNU bison' y-file
+        or
+       Save the restore file in XML format so that it can be parsed by libxml2.
+
+[ ?? ] Add dictionary variations (i.e. a -> @, pswd -> dwsp)
+        - fixed rules
+        - user defined rules

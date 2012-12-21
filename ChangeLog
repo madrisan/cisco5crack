@@ -1,0 +1,650 @@
+Changes in version 1.1.5
+
+* gcc 3.4.3 warnings fixed
+
+* changed email address and pgp/gpg public key; updated copyright lines
+
+* data written to disk is now saved in the directory `/var/log/c5c/'
+     drwxr-x---  2 root c5c 72 2004-12-18 18:49 /var/log/c5c/
+  where `c5c' is the `LOGGING_GROUP' defined in `config.h'
+
+* small changes to fix some warnings compiling with diet-glibc 0.27
+
+* gcc 3.4.4 compilation errors fixed
+
+* updated README
+
+* fixed syntax error in config/cflags.m4
+
+--------------------------------------------------------------------------------
+Changes in version 1.1.4
+
+* Rebuild with automake 1.8
+  - ./config/mkinstalldirs: removed (now obsolete)
+  - ./config/bootstrap.sh: added `--Wobsolete' and `--Woverride' options
+  - refresh autoconf script to use autoconf 2.58 or better
+
+* Various code and memory optimizations to speed execution.
+
+* Minor fixes in `./Makefile.am'.
+
+* Added `--enable-gcc-profile' in the `configure' script.
+
+--------------------------------------------------------------------------------
+Changes in version 1.1.3
+
+* Fix to avoid warnings displayed by autoconf 2.58 for the obsolete macro
+  `AC_HELP_STRING'.  The `AS_HELP_STRING' is now used instead.
+
+* Updates in the RPM specfile `./c5c.spec.in' and `./Makefile.am'.
+
+* Minor fixes in `./Makefile.am'.
+
+--------------------------------------------------------------------------------
+Changes in version 1.1.2
+
+* Fixed all the cross compiling warnings
+
+     "AC_RUN_IFELSE called without default to allow cross compiling"
+
+  displayed running autoconf with the `--warnings=all' option.
+
+* Removed the obsolete macro `AC_PROG_CC_STDC' from `configure.ac'.
+
+* The `CFLAGS' variable is not overwritten by the `configure' script and so
+  can be used to force some compiler flags fixed at `configure'-time.
+  For instance
+
+     CFLAGS="-march=pentium -O3" ./configure
+
+  force the compiler to generate code for the Intel Pentium CPU and set
+  optimisation level to 3.
+
+  This feature can be interesting when creating generic RPM/SRPM packages
+  (ex. packages for a generic `i386' architecture built on a `i686' host).
+
+* Added the `dist-rpm' target to the top level Makefile to automatically
+  generate the RPM and SRPM packages.
+
+* Fixed portability problems in the RPM generation via Makefile.
+  Now 'rpm --eval=%{_sourcedir}' and similar commands are used instead of
+  fixed defined paths.  Tested on SuSE and QiLinux distros.
+
+--------------------------------------------------------------------------------
+Changes in version 1.1.1pre1 - 1.1.1pre3, 1.1.1
+
+* Added some optimizations in the `./src/md5.c' functions `bytes_encode', and
+  `bytes_decode' for little-endian architectures only.
+
+* General crypt-related code reorganization:
+     md5.*           -->  md5 algorithm
+     libcrypt.*      -->  cisco IOS/PIX MD5 crypt API (pseudo-library)
+     crypt.*         -->  cracking tool
+                          (libcrypt calls, warnings/errors management, ui)
+
+  List of the renamed/moved source and header files:
+     `./src/option.c'             --> `./src/main.c'
+     `./src/include/option.h'     --> `./src/include/main.h'
+     `./src/crypt.c'              --> `./src/libcrypt.c'
+     `./src/include/crypt.h'      --> `./src/include/libcrypt.h'
+     `./src/crypt_fe.c'           --> `./src/crypt.c'
+     `./src/include/crypt_fe.h'   --> `./src/include/crypt.h'
+
+  All the #define MD5_* lines moved from
+     `./src/include/params.h' (global def)
+  to
+     `./src/include/libcrypt.h' (crypt/decrypt def);
+
+  Unneded preprocessor directive
+     `#include "params.h"'
+  removed from
+     `./src/include/libcrypt.h'.
+
+  End of `./src/libcrypt.c' code separation from `entropy.c' and `tty.c'.
+
+  Functions `cisco_is_plaintext()', and `cisco_is_salt()' moved from
+  `./src/decrypt.c' to `./src/libcrypt.c'.
+
+  Regular expressions related stuff moved to the new files `./src/regex.c'
+  and `./src/include/regex.h'.
+
+* Add GCC stack-smashing protector support in `configure.ac' (see the macro
+  `cc_TRY_CFLAGS_SSP' defined in `./conf/cflags.m4').
+  See also
+     <http://researchweb.watson.ibm.com/trl/projects/security/ssp/>
+  for more informations.
+
+* DFA for regular expressions scorporated from the general DFA (`./src/dfa.c').
+  Code moved to `./src/regex.c'.
+
+  Fixed an alignment problem of the character `^' in some DFA outputs.
+
+     ** ERROR: buggy regular expression
+     [^^[:digit:][:lower:]]x[abc\\\_][0-9]{2}f
+        ^ expected token `['
+
+     ( ^ expected token `['                      <-- correct position )
+
+* New format for the restore files (`restore_cc').
+  DFA modified to make it able to cut the new restore files into the right
+  sequence of tokens.
+
+  Fixed alignment problems in the DFA while parsing a sintatically buggy
+  restore files (`./restore_cc').  DFA code moved to `./src/session.c'.
+  Files `./src/dfa.c', `./src/include/dfa.h' removed.
+
+     ** ERROR: parser fatal error
+     _method_"bruteforce"
+
+          ^ string exceed static size limit
+
+* Fix: the restore file is not deleted right after the parsing, but only when
+  all the checks of its content are performed (see: `./src/decrypt.c').
+
+* `configure.ac': raised version number to 1.0.
+
+* Documentation updates.
+
+--------------------------------------------------------------------------------
+Changes in version 1.1.0-pre1 - 1.1.0-pre10, 1.1.0-rc1
+
+* Function `md5_update()' modified to work on sparks (bigendian architecture).
+
+* Code optimizations (architecture-dependant) in the function `md5_final'
+  (file `./src/md5.c').
+
+* Add optimization support in `configure.ac' for sparc-sun-solaris + GNU gcc
+  architectures (thanks to Luca Trombotto for the a wonderful ssh access to his
+  SunOS frodo 5.8 Generic_108528-21 sun4m sparc SUNW,SPARCstation-5 Solaris).
+
+* Fix a visualization problem in the `configure' script when optimization
+  flags for the compiler are not found.
+
+* Fix in `./src/md5.c' to support bigendian architectures when the directive
+  `SHORT_PASSWORDS' is disabled.
+
+* Cleanup compiler warnings generated by gcc 3.3.
+
+* Make `./m4/devices.m4', `./m4/getopt_long.m4', and `gcc_bugs.m4' work again.
+  Was a bug introduced in the release 1.0.4 by using `AC_RUN_IFELSE' in a wrong
+  way.
+
+* Add a check for `-lsocket' in `configure.ac' (needed by SUN Solaris).
+
+* Bugfix in `./m4/getopt_long.m4'. Now the `./src/missing' version of
+  `getopt_long' should be selected when this function is not found in the system
+  libraries.
+
+* More code cleanups in `configure.ac'.
+
+* Add checks for `fork' availability in `configure.ac'.
+  The `--daemonize' option is now disabled if a working `fork' function is not
+  detected.
+
+* The file `./src/missing/strchr.c' has been removed and its code transformed
+  into a preprocessor directive inserted in the source files when needed.
+
+* The file `./m4/getopt_long.m4' has been removed and the code to check for the
+  GNU function `getopt_long' availability has been simplified.
+
+* Various fixes in the Makefiles to let `configure' compile and link the
+  `./src/missing/.' functions that are not implemented in the system libraries.
+  Now a static library is created to accomplish this task.
+  This should fix the reported build problems on non-glibc systems.
+
+* The Linux RPM `spec' file have been converted to a `spec.in' file to be
+  processed by make in order to automatically update the program name, its
+  version number, and the bug-report-address.
+
+* Add the `dist-update' tag to `./Makefile.am' to automatically generate
+     `./FILES.md5sum'
+     `./c5c.spec' (from `./c5c.spec.in')
+  using the command `make dist-update'.
+
+  Add the `dictionary-it' tag to `./dictionary/Makefile.am' to generate a
+  tarball with the italian vocabulary.
+
+  The dictionary files have been stripped out of the main package tarball and
+  now are distributed as separate archives.
+
+* Trivial update in `configure.ac' to generate also a tar.bz2 package.
+
+* Add checks in `configure.ac' for `struct sockaddr_un.sun_path' availability,
+  needed to compile successfully the EGD support.
+
+* Security fix.  Added a check in `./src/session.c' for the
+     `RESTORE_FILE' and `SCORE_FILE'
+  format, not to overwrite user/system files via a symlink attacks.
+
+* `./m4' folder moved to `./config'.
+
+* The macros in `./config/devices.m4' has been modified to avoid C code
+  duplication.  See the new macro `_cc_HAVE_DEV'.
+
+* Add the shell script `./config/bootstrap.sh' for packet management purposes.
+
+* The folder `./scripts' has been removed and its content moved to the `./config'
+  folder.  Makefiles and `configure.ac' updated.
+
+* The code related to the `MD5_SIZE_OVER_SPEED' directive in the function
+  `md5transform()' in the file `md5.c' copyright by
+  Erik Andersen <andersen@uclibc.org> has been removed.
+
+* The code (and its legalese copyright) in the file `md5.c' derived from the
+  RSA Data Security, Inc. MD5 Message-Digest Algorithm has been removed.
+  The code written by Colin Plumb in 1993 is now used instead.
+  No copyright is claimed and the code is in the public domain.
+
+* Fix in POSIX termios headers and functions detection via autoconf (ac macro
+  `AC_SYS_POSIX_TERMIOS').
+
+* `-O3' optimization removed from the gcc `CFLAGS'.
+  O3 + gcc (GCC) 3.2.3 produce broken code on the `sparc-sun-solaris2.8'
+  architecture I've used in the function `cisco_pix_crypt'.
+
+* Added `dictionary-it-tgz' and `dictionary-it-bz2' targets for make in the
+  `dictionary' folder.
+  The old target `dictionary-it' is still available and points to the
+  `dictionary-it-tgz' one because it compress better these particular text
+  files.
+
+* Code cleanups and many minor bugfixes.
+
+--------------------------------------------------------------------------------
+Changes in version 1.0.4
+
+* Some code optimizations in the function `md5_transform', implemented in the
+  file `./src/md5.c' (probably they are little-endian dependant...).
+  Anyway, cracking speed seems to have been increased by +8,5%.
+
+* Code updates in `configure.ac' and *.m4 scripts to use the new macros
+     `AC_RUN_IFELSE', `AC_COMPILE_IFELSE'
+  defined in autoconf 2.57.
+
+* Fix in the macro `cc_GCC_SR_BUG' in the folder `./m4/gcc_bugs.m4' to let it
+  work again within the `AC_RUN_IFELSE' sintax.
+
+* The code to check for the gcc `strength-reduce bug' has been moved from
+  `autoconf.ac' to the file `gcc_bug.m4', in the `./m4' folder.
+  A check about the gcc multiple implicit struct copy bug has been added
+  (see the macr `cc_GCC_MISC_BUG', in the folder `./m4/gcc_bugs.m4').
+  It just prints a warning message if the bug is detected.
+
+* Some code cleanups in `./configure.ac' to speed up the configuration step.
+
+* Added `./src/missing/malloc.c' for the systems with a `malloc' function not
+  compatible with the GNU C library `malloc' (i.e., where `malloc (0)' does not
+  returns a valid pointer).
+
+* Added `./scripts/c5c_files' to generate the text file `./FILES' with the list
+  of the c5c files and their md5sum associated values.
+
+* Typos fixes.
+
+--------------------------------------------------------------------------------
+Changes in version 1.0.3
+
+* The functions `md5_pad', `md5_encode', and `md5_decode' implemented in the
+  source file `./src/md5.c' have been merged directly into the function
+  `md5_final' to increase the code speed.
+
+* The function `F(x,y,z)' of the MD5 algorithm (see RFC 1321) is a little bit
+  optimized (as found in Colin Plumbs public domain implementation).
+
+* Add `c5c.spec' to generate the RPM and RPMS packages from the tarball with the
+  command:  `rpm -ba --target i686-pc-linux-gnu c5c.spec'.
+
+--------------------------------------------------------------------------------
+Changes in version 1.0.2
+
+* Add the file `README' in the folder `dictionary' found on the WEB in the
+  original dictionary package made by Luigi M. Bianchi <lbianchi@sol.yorku.ca>.
+
+* Add the README.EGD file.
+
+* Add the `atexit.c' file in the folder `./src/missing' and related stuff in
+  `./src/missing/Makefile.ac' ac `./configure.ac'.
+
+* Functions `chmod' (`chmod(SCORE_FILE, S_IRUSR | S_IWUSR)') removed in the
+  module `decrypt.c'.  Added `umask' for the same security purpose.
+
+* The sentence "or (at your option) any later version." has been removed from
+  all the license header in my source files.
+
+* Typos fixes.
+
+--------------------------------------------------------------------------------
+Changes in version 1.0.1
+
+* Introduced the check of the `chmod' function availability
+  (see `#define HAVE_CHMOD' in `configure.ac').
+  Used in the `decrypt.c' to enforce data security.
+
+  Old check
+     #if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
+  removed from `decrypt.c'.
+
+* The ANSI mode compiler mode has been turned active by default.
+
+* Written a script (`./scripts/gzip2bz2') to convert `c5c-x.x.x.tar.gz' into the
+  bzip2 archive `c5c-x.x.x.tar.bz2'.
+
+--------------------------------------------------------------------------------
+Changes in version 1.0.0pre3 == version 1.0.0
+
+* The check for inconsistences in the options entered by the user has been
+  rewritten.  Now the options can be entered in any order!
+
+* Bugfix in the format of the error message displayed by the dfa error manager.
+
+* Minor bugfixes.
+
+--------------------------------------------------------------------------------
+Changes in version 1.0.0pre2
+
+* IOS silently discards space characters at the begin of a plain string to
+  be hashed.  Now c5c exit with an error in such a situation.
+
+* New syntax for bruteforce strictly based on regular expressions.
+
+    regexpr          means
+    -----------------------------------------------------
+    [a-z]            abcdefghijklmnopqrstuvwxyz
+    [a-i0-4]         abcdefghi01234
+    .                `ALPHABET_ALL'
+    [a-z]{n}         [a-z] repeated exactly `n' times
+    [:lower:]        [a-z]
+    [:upper:]        [A-Z]
+    [:alpha:]        [A-Za-z]
+    [:alnum:]        [A-Za-z0-9]
+    [:digit:]        [0-9]
+    [:all:]          `ALPHABET_ALL'
+    [a-z]{n}         [a-z] repeated exactly `n' times
+    [[:upper:]0-9]   ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+    [^[0-9]]         `ALPHABET_ALL' - [0-9]
+
+--------------------------------------------------------------------------------
+Changes in version 1.0.0pre1
+
+* Minor changes to remove two warnings when compiling in no `-ansi' mode.
+
+* Added the flag `--enable-gcc-ansi' in the `configure' script.
+  The `-ansi' flag for GCC is turned off by default.
+
+* The `SCORE_FILE' is set in read-write mode only for the owner of the c5c
+  process.  This works only if gcc is not called with the `-ansi' flag.
+
+--------------------------------------------------------------------------------
+Changes in version 0.9.2
+
+* Added all the needed checks for the included header files, as recommended by
+  the autoconf documentation.
+
+* The wordlist attack can be now stopped and restored with the `-r' option.
+
+* Bugfix -- The file `./restore_cc' (or the file specified by the user with the
+  option `-r'), is removed when the restored session ends.
+
+--------------------------------------------------------------------------------
+Changes in version 0.9.1
+
+* Added the option `--daemonize' to run in daemon mode the program.
+  If it is killed (by: kill <pid>), the session status is saved on the text
+  file `./restore_cc' (see `#define RESTORE_FILE' in `params.h'), as usual.
+  The session can be restored later using the `-r' option.
+
+  When the cracking session finish, the result is saved in the the text file
+  `./score_cc' (see `#define SCORE_FILE` in `params.h').
+
+* Bugfix -- When a cracking session was killed by a `^C' character, the actual
+  string used in the bruteforce test could be lost (i.e. the `chpos' counters
+  _could_ point to the next string in the list of the candidates choosen by the
+  user) and the next resumed session (`-r' option) would loose one test.
+
+--------------------------------------------------------------------------------
+Changes in version 0.9.0
+
+* Added support for Cisco PIX encrypted password.
+ Thanks to mao <mao@oxid.it> and Michael Thumann <mthumann@ernw.de> for the
+  support found at <http://www.oxid.it>.
+
+  Minor changes in the code to support this new feature. They have been checked
+  with some regression tests.
+
+  Again, some code cleanups (this time expecially in the user option parser).
+
+* `HAVE_DEV_RANDOM' modified into `DEV_RANDOM_SUPPORT'.
+
+* EGD support has been enabled by default (`EGD_SUPPORT').
+
+--------------------------------------------------------------------------------
+Changes in version 0.8.2
+
+* More extended code cleanups.
+
+* Fix the support for the quote (`"') character when restoring a cracking
+  session.  Now the quote character must be escaped when used in a regular
+  expression or alphabet (`\"').  Here an example
+
+       c5c -b'c[\\@\_\"][a-z]:2:{:12:}e' ...
+
+* Added support to EGD (Entropy Gathering Daemon) socket and protocol.
+  Should be used only where the OS is not Linux, and/or `/dev/random' is not
+  available :(.
+  You can download the Perl script by Brian Warner <warner@lothar.com> at
+  <http://sourceforge.net/projects/egd/>.
+
+* Added the user options and the corresponding help messages
+
+       `-e, --egd', `-d, --dev-random', `-y, --sys-rand'
+
+* Add the option `--enable-egd-support' to enable the EGD socket support
+  (that is disabled by default).
+  The socket must be created in `EGD_SOCKET_PATH' (defined in the `./config.h'
+  file, automatically created by the `./configure' script), currently set to
+
+       `/tmp/entropy'
+
+  (can be manually modified).
+
+* The `union' in the structure `options_t' has been replaced by a `struct' to
+  avoid problems while setting default values (in `options.c').
+
+* Fix a wrong `#define' in `entropy.c'.  Now `/dev/random' is used if it exists.
+
+* Add script ./scripts/c5c_indent.
+
+--------------------------------------------------------------------------------
+Changes in version 0.8.1
+
+* New code to automagically detect the processor family (used by the compiler
+  for optimization purposes).  Now it should handle correctly all PC cpus.
+  Added support for the Cygwin environment.
+
+* Add the modules `entropy.c' and `entropy.h'.
+
+* Add the option `--disable-dev-random' in `configure.ac' to disable the use of
+  (the linux device) `/dev/random'.
+  If selected, the ANSI functions `srand' and `rand' are used instead.
+
+* Autotools scripts moved in the package subfolder ./scripts.
+
+* Porting to Win32 platforms, using the Cygnus Developer's Kit.
+
+  See at <http://sources.redhat.com/cygwin/>,
+         <http://www.cygnus.com/misc/gnu-win32/>.
+
+* Fix some gcc 3.2 minor warnings.
+
+* Some changes/fix in the files parsed by the GNU autotools.
+  Fix in ./src/include/cc_getopt.h to correctly handle GNU `getopt_long()'.
+
+* Fix in Makefile.am in the top source directory to include the file VERSION
+  in the tarball.
+
+* Tarball rebuilt using autoconf-2.57 and automake-1.7.2.
+  Some changes in the files parsed by the GNU autotools.
+
+--------------------------------------------------------------------------------
+Changes in version 0.8rc2
+
+* Extended code cleanups.
+
+* Finally implemented the pause/resume (`-r' or `--resume' options) feature.
+
+* Lots of changes in the code, especially in the dfa parser module.
+
+--------------------------------------------------------------------------------
+Changes in version 0.8rc1
+
+* Added code in `memory.[ch]' to implement a simple garbage collection system,
+  to avoid any memory leaks problems.
+  All the heap memory blocks dinamically allocated by the program are now
+  getting freed when the program ends.
+
+* Password scheme parser completely rewritten and simplified, using a DFA.
+  The sintax has been modified to make it unambiguous with one lookahead symbol.
+
+* Added support for user defined lists of consecutive chars in the regular
+  expressions associated with the `b' option.
+  For instance, the expression
+
+       `[@\-L1sTa-d\\]'
+
+  now specify the list of chars
+
+       `@-L1sTabcd\'
+
+  The escape sequence `\-' maps the minus (`-') char.
+
+* Trivial change in the password scheme output, when the `-vv' option is
+  specified, to make it more compact.
+
+  Example:  `{4}*5{8}*3' is now converted into
+
+        p[0..4] = "0123456789"
+        p[5..7] = "$%&=+-_@"
+
+--------------------------------------------------------------------------------
+Changes in version 0.7.2pre2
+
+* Added code to check the length of passwords to be crypted.
+  This fix a `segmentation fault' for input string with a length greater then
+  `MAX_PLAIN_SIZE' (thanks to Silvan Calarco).
+
+* Introduced a check to verify that the strings to crypt have only legal letters
+  for the IOS charset (`IOS_CHARSET').
+
+--------------------------------------------------------------------------------
+Changes in version 0.7.2pre1
+
+* Some bugfixes.
+
+* Fix in the `configure.ac' code that manage the Athlon CPU optimization flags
+  and in `./m4/getopt_long.m4' where the deprecated call to `LIBOBJ' is now
+  replaced by a call to `AC_LIBOBJ'.
+
+* Code optimizations/cleanups in functions `bruteforce()' and `md5crypt()'.
+
+* Cleanups and changes in `configure.ac' and *.m4 files in the newborn folder
+  `m4' to use (possibly all) the guide-lines found in the Autoconf bible written
+  by David MacKenzie, Ben Elliston, and Akim Demaille.
+
+* Added `params.h' with the global parameters (directives) of the program
+
+* Added `memory.h' and `memory.c' with all the memory allocation routines.
+
+* Added code to `configure.ac' to set the `HAVE_DEV_TTY' directive in
+  `config.h' if the device `/dev/tty' exists and can be used.
+
+* Some `unsigned long' variables used in the RSA code has been changed into
+  the `u_int32_t' ISO C typedef.
+  Add `AC_CHECK_TYPE(u_int32_t, unsigned int)' command in `configure.ac'
+
+* Added loop unrolling in `md5transform()' configurable via the
+
+         `MD5_SIZE_OVER_SPEED'
+
+  preprocessor directive (code taken from the `uClib-libcrypt' library).
+
+--------------------------------------------------------------------------------
+Changes in version 0.7.1pre3
+
+* The option `-L' (or `--license') has been added.
+
+* The option `-v' (or `--verbose') has been introduced.
+  Can be used several times to increase the number of informations in the
+  output messages.
+  note:  the old option `-v' (or `--version') has been changed into `-V'.
+
+* A buffer overrun have been fixed.
+
+* Duplication of alphabets in password structures is now just a duplication of
+  pointers not new memory dinamically allocated.
+
+* User options completely modified to unify the options `-a', `-A', and `-b'.
+
+  The options `-a' and `-A' have been removed.
+
+  The user option
+
+        `-b[<letters>]*<int>'
+
+  has been introduced for analogy with the yet implemented `-b{<id>}*<int>'.
+
+* Added options
+
+        `--enable-gcc-warnings' and `--disable-gcc-warnings'
+
+  to `configure.ac'.
+
+* Code fix when the `-ansi' option is not supported by the compiler.
+
+--------------------------------------------------------------------------------
+Changes in version 0.7.1pre2
+
+* The package tree has been completly reorganized to separate source code,
+  header files, and GNU stuff
+
+* Add full support for GNU `getopt_long()'.
+
+  Various checks and enhancements introduced in the user options parser.
+
+  Add code to compile the program successfully even on platforms that don't
+  have `getopt_long()' (neither header file nor library locally installed).
+
+* Fix in `configure.ac' to correctly manage the `DISABLE_MAX_SPEED' directive
+  (see the files `config.h.in' and `config.h').
+
+* The redundant prompt options `-db', `-da', `-dA', and `-dw' has been removed
+  the meaning of the option `-b' has been modified.
+
+* Added support for GNU `getopt_long()' in `configure.ac'.
+
+* Add support for code optimisation `CFLAGS' for near all unix platforms and
+  compilers (using the qt-x11-free-3.1.1/mkspecs files info).
+
+* Add support in `configure.ac' to $host
+
+        i?86*-*-linux* | i386-*-solaris* | i?86-* | k?-* | athlon-*)
+
+  to automatically manage cpu optimisation flags (gcc only).
+
+--------------------------------------------------------------------------------
+Changes in version 0.7.1pre1
+
+* Bugfix: now `-l<int1>-<int2>' with <int2> less then <int1> gives an error
+  message, not a segmentation fault!
+
+* New `-w' option to permit an attack based on a given vocabulary.
+  Basic features implemented.
+
+* Add configuration options pair
+
+        `--enable-shortpasswd'  /  `--disable-shortpasswd'
+
+  to `configure.ac' to enable (default) or disable the optimisations
+  in the code and force the program to use the original md5 algorithm.
+
+* Add the `VERSION' used by the macro `m4_define' in `configure.ac'.
+--------------------------------------------------------------------------------
