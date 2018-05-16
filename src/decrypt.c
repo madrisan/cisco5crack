@@ -275,7 +275,7 @@ bruteforce(void)
                     }
                     return FAILURE;
                }
-               tty_message("\n** NOTE: switching to lenght `%ld', "
+               tty_message("\n** NOTE: switching to length `%ld', "
                            "please wait... ", actual_len);
                plaintext[actual_len - 1] = alphabet[actual_len - 1][0];
           }
